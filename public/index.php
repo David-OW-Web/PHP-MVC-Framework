@@ -1,8 +1,8 @@
 <?php
 
 // define commands should be in a config.php file actually XD
-define("SITENAME", "News App");
-define("SITEURL", "mvc_projects/MVC_News_App_/News-App-Single-Language/public");
+define("SITENAME", "your_site_or_app_name");
+define("SITEURL", "your_url/public/");
 require '../core/Helper.php';
 require '../core/Database/DatabaseHandler.php';
 require '../core/Database/Entity.php';
