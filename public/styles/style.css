@@ -1,0 +1,113 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.wrapper {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+}
+
+.table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+.table, th, td {
+    /* border: 1px solid black; */
+    border-bottom: 1px solid #ddd;
+    /* border-top: 1 px solid #ddd. probably gonna add this */
+    padding: 10px;
+}
+
+.table th {
+    text-align: left;
+}
+
+.table caption {
+    caption-side: bottom;
+    text-align: left;
+}
+
+.navigation {
+    grid-column: 1 / 13;
+}
+
+.navbar {
+    display: flex;
+    flex-direction: row;
+    grid-gap: 15px;
+}
+
+.navbar li {
+    list-style: none;
+}
+
+.navbar li a {
+    text-decoration: none;
+}
+
+/* Backgrounds */
+
+.bg-grey {
+    background-color: #ccc;
+}
+
+.bg-dark {
+    background-color: black;
+}
+
+/* Containers */
+
+.container {
+    grid-column: 1 / 13;
+}
+
+/* Forms */
+
+.form-container {
+    grid-column: 1 / 5;
+}
+
+.form {
+    /*
+    display: flex;
+    flex-direction: column;
+     */
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 20px;
+}
+
+.form button {
+    width: 100%;
+    border: 0;
+    padding: 5px;
+}
+
+.form label {
+    display: grid;
+}
+
+.form input {
+    width: 100%;
+}
+
+.form .full {
+    grid-column: 1 / 3;
+}
+
+/* Texts */
+
+.text-dark {
+    color: black;
+}
+
+.text-light {
+    color: #ccc;
+}
+
+.text-white {
+    color: white;
+}

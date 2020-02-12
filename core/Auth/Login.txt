@@ -1,0 +1,70 @@
+    /*
+    // Implement automated pagination probably. With join and condition. but in a seperate class
+    // And expand Login method. But probably add a Authentication/Identity class
+    public function Login(array $data, $fields, ...$args) {
+        $fieldsImplode = [];
+        foreach($fields as $field) {
+            $fieldsImplode[] = '`' . $field . '`';
+        }
+        $dataImplode = [];
+        $valueImplode = [];
+        foreach($data as $k => $v) {
+            if($k == "email" || $k == "username") {
+                $dataImplode[] = " " . $k . "=?";
+            }
+
+            if($k == "password" || $k == "user_password") {
+                $dataImplode[] = "AND " . $k . "=?";
+            }
+            $valueImplode[] = $v;
+        }
+        $fields1 = implode(",", $fieldsImplode);
+        $data = implode(" ", $dataImplode);
+        $value = implode(" ", $valueImplode);
+        // echo $value;
+        $sql = "SELECT {$fields1} FROM $this->tableName WHERE {$data}";
+        $stmt = $this->con->prepare($sql);
+        $i = 1;
+        foreach($args as $arg) {
+            $stmt->bindValue($i, $arg);
+            $i++;
+        }
+        $stmt->execute();
+        $this->setSQL($sql);
+        // $this->Count = $stmt->rowCount();
+        // return $this->Count;
+
+        $this->Count = $stmt->rowCount();
+        if($stmt->rowCount() == 1) {
+            $data = $stmt->fetch(PDO::FETCH_OBJ);
+            /*
+            foreach($fields as $k => $v) {
+                $_SESSION['app_user'] = array(
+                    $v => $data[$v]
+                );
+            }
+            */
+    /*
+            return $data;
+        } else {
+            return 0;
+        }
+
+
+        // $sql = "SELECT {$fields} FROM $this->tableName WHERE username = {$value}";
+    }
+    */
+
+    // Just so I dont forget it
+
+
+
+# Htaccess in public!!
+    #turn on rewrite engine
+    RewriteEngine on
+
+    #IF REQUESTED FILE IS NOT A REAL FILE
+    RewriteCond %{REQUEST_FILENAME} !-f
+
+    #Redirect all rquest to index.php
+    RewriteRule . index.php [L]
