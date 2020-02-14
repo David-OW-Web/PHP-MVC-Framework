@@ -23,6 +23,7 @@ class Controller
                 require $path;
             } else {
                 require "../app/Views/Layout/header.php";
+                // actually bad logic if(isset($_SESSION['news_app_user']) && $_SESSION['news_app_user']['role_id'] == 1 && $this->controller == "DashBoard")
                 $path = "../app/Views/" . $this->controller . "/" . $this->action . ".php";
                 require $path;
                 require "../app/Views/Layout/footer.php";

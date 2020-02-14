@@ -27,4 +27,24 @@ class Authentication extends DatabaseHandler
             return 0;
         }
     }
+
+    public static function CheckSession($key) {
+        if(isset($_SESSION[$key])) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    public static function CheckRole($id) {
+
+    }
+
+    public static function isAdmin($key, $role_key) {
+        if(isset($_SESSION[$key][$role_key]) && $_SESSION[$key][$role_key] == 1) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 }

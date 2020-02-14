@@ -1,14 +1,12 @@
 <?php
 
 // define commands should be in a config.php file actually XD
-define("SITENAME", "your_site_or_app_name");
-define("SITEURL", "your_url/public/");
+require '../config/config.php';
 require '../core/Helper.php';
 require '../core/Database/DatabaseHandler.php';
 require '../core/Database/Entity.php';
 require '../core/Controller.php';
 require '../core/Pagination.php';
-require '../config/config.php';
 
 if(isset($_GET['request'])) {
     session_start();
@@ -24,4 +22,6 @@ if(isset($_GET['request'])) {
     $controllerObj = new $controllerName;
     $controllerObj->{$action}();
     // echo $controllerName;
+} else {
+    Helper::Redirect('Home', 'Index');
 }

@@ -29,7 +29,8 @@ class Helper
 
     public static function URL($controller, $action, $id = null, $idValue = null) : ?string {
         if($id != null) {
-            $url = "http://localhost/" . SITEURL . "/" . $controller . "/" . $action . "&id=" . $id;
+            // $url = "http://localhost/" . SITEURL . "/" . $controller . "/" . $action . "&id=" . $id;
+            $url = "http://localhost/" . SITEURL . "/" . $controller . "/" . $action . "/" . $id;
             return $url;
         }
         $url = "http://localhost/" . SITEURL . "/" . $controller . "/" . $action;

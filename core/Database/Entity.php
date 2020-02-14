@@ -13,6 +13,7 @@ class Entity extends DatabaseHandler
     private $Count;
     protected $dbFields = [];
     private $paramsArr = [];
+    private $cachedQueries = [];
 
     /*
     // Project tables
@@ -114,21 +115,25 @@ class Entity extends DatabaseHandler
         $class = new \ReflectionClass($this);
 
         $whereToImplode = [];
+        $valueToImplode = [];
 
         foreach($condition as $k => $v) {
             foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
                 if($prop->getName() == $k) {
                     $propName = $prop->getName();
+                    $valueToImplode[] = $v;
                     $whereToImplode[] = " WHERE " . $k . ' = ?';
                 }
             }
         }
-        array_push($this->paramsArr, $this->{$propName});
+        $value = implode(" ", $valueToImplode);
+        array_push($this->paramsArr, $value);
 
         $where = implode(" ", $whereToImplode);
         $this->generatedSQL .= $where;
 
         if(strpos($this->generatedSQL, "SELECT") !== false) {
+            // print_r($this->paramsArr);
             return $this;
         } else {
             $stmt = $this->con->prepare($this->generatedSQL);
@@ -137,13 +142,21 @@ class Entity extends DatabaseHandler
                 $stmt->bindValue($i, $v);
                 $i++;
             }
-            $stmt->execute();
+            array_push($this->cachedQueries, $this->generatedSQL);
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
+            return $stmt->execute();
             // echo $i . "<br>";
             // print_r($this->paramsArr);
         }
     }
 
-    public function _And(array $condition) {
+    public function getCachedQueries() {
+        return $this->cachedQueries;
+    }
+
+    public function _And(array $condition, $get = 0) {
+        // $orToImplode = [];
         $class = new \ReflectionClass($this);
         // $andToImplode = [];
         $andToImplode = [];
@@ -155,10 +168,28 @@ class Entity extends DatabaseHandler
                 }
             }
         }
+        $orQuery = implode(" ", $andToImplode);
         array_push($this->paramsArr, $this->{$propertyName});
-        $andQuery = implode(" ", $andToImplode);
-        $this->generatedSQL .= $andQuery;
-        return $this;
+        $this->generatedSQL .= $orQuery;
+        // echo $this->generatedSQL;
+        // if
+        // return $this;
+        // echo $this->generatedSQL;
+        // print_r($this->paramsArr);
+        // echo count($this->paramsArr);
+        if($get == 1) {
+            $stmt = $this->con->prepare($this->generatedSQL);
+            $i = 1;
+            foreach ($this->paramsArr as $k => $v) {
+                $stmt->bindValue($i, $v);
+                $i++;
+            }
+            $stmt->execute();
+            $this->setCount($stmt->rowCount());
+            return $stmt->fetchAll(PDO::FETCH_OBJ);
+        } else {
+            return $this;
+        }
     }
 
     public function _Or(array $condition) {
@@ -184,6 +215,8 @@ class Entity extends DatabaseHandler
         if(count($this->paramsArr) == 0) {
             $stmt = $this->con->prepare($this->generatedSQL);
             $stmt->execute();
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         } else {
             $stmt = $this->con->prepare($this->generatedSQL);
@@ -193,9 +226,27 @@ class Entity extends DatabaseHandler
                 $i++;
             }
             $stmt->execute();
+            array_push($this->cachedQueries, $this->generatedSQL);
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         }
        // return 1;
+    }
+
+    public function GetSingle() {
+        if(count($this->paramsArr) != 0) {
+            $stmt = $this->con->prepare($this->generatedSQL);
+            $i = 1;
+            foreach($this->paramsArr as $k => $v) {
+                $stmt->bindValue($i, $v);
+                $i++;
+            }
+            $stmt->execute();
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
+            return $stmt->fetch(PDO::FETCH_OBJ);
+        }
     }
 
     public function OrderBy(array $condition) {
@@ -244,6 +295,7 @@ class Entity extends DatabaseHandler
 
         $sql = "SELECT {$fields}, {$jfields} FROM $this->table {$conditions}";
         $this->setSQL($sql);
+        // echo $this->generatedSQL;
         return $this;
 
     }
@@ -254,7 +306,7 @@ class Entity extends DatabaseHandler
         return $this;
     }
 
-    public function Update(array $fields,  $where = []) {
+    public function Update(array $fields) {
         $implode = [];
         $class = new \ReflectionClass($this);
         foreach($fields as $k => $v) {
@@ -270,19 +322,9 @@ class Entity extends DatabaseHandler
             }
         }
 
-        $whereToImplode = [];
-        foreach($where as $k => $v) {
-            foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
-                if($prop->getName() == $k) {
-                   // $whereToImplode[] = " WHERE " . $k . " = " . $v;
-                    $propValue = $prop->getName();
-                    $whereToImplode[] = " WHERE " . $k . " = " . $this->{$propValue};
-                }
-            }
-        }
-        $where = implode(" ", $whereToImplode);
+
         $fields = implode(",", $implode);
-        $sql = "UPDATE $this->table SET {$fields} {$where}";
+        $sql = "UPDATE $this->table SET {$fields}";
         $this->setSQL($sql);
         return $this;
     }
@@ -308,11 +350,15 @@ class Entity extends DatabaseHandler
                 $i++;
             }
            $stmt->execute();
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
             return $stmt->rowCount();
         }
         $stmt = $this->con->prepare($this->generatedSQL);
         $stmt->execute();
         $test = "{$this->getSQL()}";
+        $this->generatedSQL = '';
+        $this->paramsArr = [];
         return $stmt->rowCount();
     }
 
