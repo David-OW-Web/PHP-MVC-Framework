@@ -14,6 +14,7 @@ class Entity extends DatabaseHandler
     protected $dbFields = [];
     private $paramsArr = [];
     private $cachedQueries = [];
+    protected $primaryKey = 'id';
 
     /*
     // Project tables
@@ -79,8 +80,11 @@ class Entity extends DatabaseHandler
         }
     }
 
-    public function Bind($object) {
+    public function Bind(array $values) {
         // bind (post) data to an object // But probably gonna be hard idk
+        foreach($values as $key => $value) {
+            $this->{$value} = $_POST[$value];
+        }
     }
 
     // Does the same like the method Insert. But here it works like ORM's
@@ -160,16 +164,19 @@ class Entity extends DatabaseHandler
         $class = new \ReflectionClass($this);
         // $andToImplode = [];
         $andToImplode = [];
+        $valueToImplode = [];
         foreach($condition as $k => $v) {
             foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
                 if($prop->getName() == $k) {
                     $propertyName = $prop->getName();
                     $andToImplode[] = " AND " . $k . ' = ?';
+                    $valueToImplode[] = $v;
                 }
             }
         }
         $orQuery = implode(" ", $andToImplode);
-        array_push($this->paramsArr, $this->{$propertyName});
+        $value = implode(" ", $valueToImplode);
+        array_push($this->paramsArr, $value);
         $this->generatedSQL .= $orQuery;
         // echo $this->generatedSQL;
         // if
@@ -186,6 +193,9 @@ class Entity extends DatabaseHandler
             }
             $stmt->execute();
             $this->setCount($stmt->rowCount());
+            array_push($this->cachedQueries, $this->generatedSQL);
+            $this->generatedSQL = '';
+            $this->paramsArr = [];
             return $stmt->fetchAll(PDO::FETCH_OBJ);
         } else {
             return $this;
@@ -372,6 +382,44 @@ class Entity extends DatabaseHandler
 
     public function getSQL() {
         return $this->generatedSQL;
+    }
+
+    public function getMaxID() {
+        $stmt = $this->con->prepare("SELECT MAX({$this->primaryKey}) AS 'id' FROM $this->table");
+        $stmt->execute();
+        return $stmt->fetch()['id'];
+    }
+
+    public function WhereLike(array $condition) {
+        $class = new \ReflectionClass($this);
+
+        $whereToImplode = [];
+        $valueToImplode = [];
+
+        foreach($condition as $k => $v) {
+            foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
+                if($prop->getName() == $k) {
+                    $propName = $prop->getName();
+                    $valueToImplode[] = $v;
+                    $whereToImplode[] = " WHERE " . $k . ' LIKE ' . ' CONCAT("%", ?, "%")';
+                }
+            }
+        }
+        $value = implode(" ", $valueToImplode);
+        array_push($this->paramsArr, $value);
+
+        $where = implode(" ", $whereToImplode);
+        $this->generatedSQL .= $where;
+        // if(strpos($this->generatedSQL, "SELECT") !== false) {
+            // print_r($this->paramsArr);
+        // echo $this->generatedSQL;
+            return $this;
+    }
+
+    public function selectView($viewName) {
+        $stmt = $this->con->prepare("SELECT * FROM {$viewName}");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_OBJ);
     }
 
     /*
