@@ -13,7 +13,7 @@ define("SITEURL", "UR_URL");
 define("DB_HOST", "localhost");
 define("DB_USER", "root");
 define("DB_PASSWORD", "");
-define("DB_NAME", "");
+define("DB_NAME", "mvc");
 define("DB_SERVER", "mysql");
 // define DSN
 // define DB_HOST
