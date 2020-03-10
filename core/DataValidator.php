@@ -34,4 +34,10 @@ class DataValidator
             return 1;
         }
     }
+
+    public static function getError(array $array, $error) {
+        if(in_array($error,$array)) {
+            return $error;
+        }
+    }
 }

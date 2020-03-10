@@ -41,4 +41,12 @@ class Helper
         $url = self::URL($controller, $action, $id);
         header("Location: " . $url);
     }
+
+    public static function Bind(array $keys, $object) {
+        $model = new $object();
+        foreach($keys as $key => $value) {
+            $model->{$value} = $_POST[$value];
+        }
+        return $model;
+    }
 }

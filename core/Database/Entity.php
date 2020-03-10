@@ -48,9 +48,9 @@ class Entity extends DatabaseHandler
     }
 
     // ORM array experiments
-    public function getFieldsByArray() {
+    public function getFieldsByArray(array $fields) {
         $implode = [];
-        foreach($this->dbFields as $k => $v) {
+        foreach($fields as $k => $v) {
             $implode[] = '`' . $v . '`';
         }
         $fields = implode(",", $implode);
@@ -207,15 +207,18 @@ class Entity extends DatabaseHandler
         $class = new \ReflectionClass($this);
         // $andToImplode = [];
         $orToImplode = [];
+        $valToImplode = [];
         foreach($condition as $k => $v) {
             foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
                 if($prop->getName() == $k) {
                     $propertyName = $prop->getName();
+                    $valToImplode[] = $v;
                     $orToImplode[] = " OR " . $k . ' = ?';
                 }
             }
         }
-        array_push($this->paramsArr, $this->{$propertyName});
+        $value = implode(" ", $valToImplode);
+        array_push($this->paramsArr, $value);
         $orQuery = implode(" ", $orToImplode);
         $this->generatedSQL .= $orQuery;
         return $this;
@@ -288,13 +291,18 @@ class Entity extends DatabaseHandler
         return $this;
     }
 
-    public function Join(array $joinFields , array $conditions, $where = [], $value = 1, $operator = "=") {
+    public function Join(array $joinFields , array $conditions, $fields = []) {
         $joinFieldsToImplode = [];
+        // Joinfields Key could be the AS name / Alias name
         foreach($joinFields as $joinField) {
             $joinFieldsToImplode[] = '' . $joinField . ' ' . 'AS ' . explode(".",$joinField)[0];
         }
 
+        if($fields) {
+            $fields = $this->getFieldsByArray($fields);
+        } else {
         $fields = $this->getColumns();
+        }
 
         $conditionsToImplode = [];
         foreach($conditions as $k => $v) {
@@ -414,6 +422,28 @@ class Entity extends DatabaseHandler
             // print_r($this->paramsArr);
         // echo $this->generatedSQL;
             return $this;
+    }
+
+    public function _OrLike(array $condition) {
+        // $orToImplode = [];
+        $class = new \ReflectionClass($this);
+        // $andToImplode = [];
+        $orToImplode = [];
+        $valToImplode = [];
+        foreach($condition as $k => $v) {
+            foreach($class->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
+                if($prop->getName() == $k) {
+                    $propertyName = $prop->getName();
+                    $valToImplode[] = $v;
+                    $orToImplode[] = " OR " . $k . ' LIKE ' . ' CONCAT("%", ?, "%")';
+                }
+            }
+        }
+        $value = implode(" ", $valToImplode);
+        array_push($this->paramsArr, $value);
+        $orQuery = implode(" ", $orToImplode);
+        $this->generatedSQL .= $orQuery;
+        return $this;
     }
 
     public function selectView($viewName) {
